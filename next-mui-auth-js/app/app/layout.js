@@ -1,10 +1,5 @@
-import NavBar from "@/components/NavBar";
+import Sidebar from "@/components/Sidebar";
 
 export default function AppLayout({ children }) {
-  return (
-    <div>
-      <NavBar />
-      <div style={{ padding: 16 }}>{children}</div>
-    </div>
-  );
+  return <Sidebar>{children}</Sidebar>;
 }
