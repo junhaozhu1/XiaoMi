@@ -61,7 +61,7 @@ export default function LoginPage() {
 
       setSnack({ open: true, type: "success", msg: data.message || "登录成功" });
 
-      setTimeout(() => router.push("/dashboard"), 600);
+      setTimeout(() => router.push("/app/dashboard"), 600);
     } finally {
       setLoading(false);
     }
