@@ -45,7 +45,7 @@ export default function Sidebar({ children }) {
       >
         <Toolbar sx={{ px: 2 }}>
           <Typography variant="h6" noWrap>
-            Your App
+            App
           </Typography>
         </Toolbar>
         <Divider />

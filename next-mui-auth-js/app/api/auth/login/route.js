@@ -1,10 +1,6 @@
 import bcrypt from "bcrypt";
 import { getPool } from "@/lib/db";
 
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
 export async function POST(req) {
   try {
     const { email, password } = await req.json();
@@ -12,11 +8,9 @@ export async function POST(req) {
     if (!email || !password) {
       return Response.json({ message: "Email/Password 不能为空" }, { status: 400 });
     }
-    if (!isValidEmail(email)) {
-      return Response.json({ message: "Email 格式不正确" }, { status: 400 });
-    }
 
     const pool = getPool();
+
     const [rows] = await pool.query(
       "SELECT id, email, password_hash FROM users WHERE email = ?",
       [email]
@@ -35,6 +29,6 @@ export async function POST(req) {
 
     return Response.json({ message: "登录成功", user: { id: user.id, email: user.email } });
   } catch (e) {
-    return Response.json({ message: "服务器错误" }, { status: 500 });
+    return Response.json({ message: "服务器错误", error: String(e?.message || e) }, { status: 500 });
   }
 }
