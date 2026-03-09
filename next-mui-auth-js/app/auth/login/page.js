@@ -1,5 +1,10 @@
 "use client";
 
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+
 import { useState } from "react";
 import {
   Alert,
@@ -33,6 +38,8 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [snack, setSnack] = useState({ open: false, type: "success", msg: "" });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,13 +98,26 @@ export default function LoginPage() {
       <TextField
         fullWidth
         label="Password"
-        type="password"
+        type={showPassword ? "text" : "password"}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         onBlur={() => setPasswordErr(validatePassword(password))}
         error={!!passwordErr}
         helperText={passwordErr || " "}
         margin="normal"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                onClick={() => setShowPassword((v) => !v)}
+                edge="end"
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
 
       <Button
