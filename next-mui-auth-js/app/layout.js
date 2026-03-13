@@ -1,4 +1,6 @@
+// app/layout.js
 import "./globals.css";
+import MuiProvider from "@/components/MuiProvider";
 
 export const metadata = {
   title: "Next MUI Auth",
@@ -8,7 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="zh">
-      <body>{children}</body>
+      <body>
+        <MuiProvider>{children}</MuiProvider>
+      </body>
     </html>
   );
 }
