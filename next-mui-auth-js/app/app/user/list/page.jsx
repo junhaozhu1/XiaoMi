@@ -103,7 +103,7 @@ export default function UserListPage() {
 
       <Card sx={{ p: 2 }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-          <FormControl sx={{ minWidth: 260 }}>
+          <FormControl sx={{ width: 320, flexShrink: 0 }}>
             <InputLabel id="role-label">Title / Role</InputLabel>
             <Select
               labelId="role-label"
@@ -111,7 +111,19 @@ export default function UserListPage() {
               value={roles}
               onChange={(e) => setRoles(e.target.value)}
               input={<OutlinedInput label="Title / Role" />}
-              renderValue={(selected) => selected.join(", ")}
+              renderValue={(selected) => (
+                <Box
+                  component="span"
+                  sx={{
+                    display: "block",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {selected.join(", ")}
+                </Box>
+              )}
             >
               {ROLE_OPTIONS.map((r) => (
                 <MenuItem key={r} value={r}>
