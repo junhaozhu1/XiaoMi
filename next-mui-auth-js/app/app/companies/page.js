@@ -23,6 +23,7 @@ import {
   TableRow,
   TextField,
   Typography,
+  TablePagination,
 } from "@mui/material";
 
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -137,6 +138,9 @@ export default function CompaniesPage() {
   const [levels, setLevels] = React.useState([]); // multi
   const [q, setQ] = React.useState("");
 
+  const [page, setPage] = React.useState(0); // 从 0 开始
+  const rowsPerPage = 10;
+
   React.useEffect(() => {
     let ignore = false;
 
@@ -188,6 +192,14 @@ export default function CompaniesPage() {
       return okLevel && okName;
     });
   }, [rows, levels, q]);
+
+  React.useEffect(() => {
+  setPage(0);
+  }, [q, levels, rows.length]);
+  const paged = React.useMemo(() => {
+    const start = page * rowsPerPage;
+    return filtered.slice(start, start + rowsPerPage);
+  }, [filtered, page]);
 
   return (
     <Box sx={{ maxWidth: drawerContentMaxWidth, mx: "auto" }}>
@@ -254,7 +266,7 @@ export default function CompaniesPage() {
                   </TableRow>
                 )}
 
-                {!loading && !error && filtered.map((r) => (
+                {!loading && !error && paged.map((r) => (
                   <CompanyRow key={r.company_code} row={r} />
                 ))}
 
@@ -268,6 +280,14 @@ export default function CompaniesPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          <TablePagination
+            component="div"
+            count={filtered.length}          // 过滤后的总数
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[10]}        // 固定 10 条/页（按你的要求）
+          />
         </Card>
       </Stack>
     </Box>
