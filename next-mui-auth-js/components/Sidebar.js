@@ -32,9 +32,9 @@ const navItems = [
 
 const userChildren = [
   { label: "Profile", href: "/app/user/profile" },
-  { label: "Cards", href: "/app/user/cards" },
+  // { label: "Cards", href: "/app/user/cards" },
   { label: "List", href: "/app/user/list" },
-  { label: "Create", href: "/app/user/create" },
+  // { label: "Create", href: "/app/user/create" },
 ];
 
 export default function Sidebar({ children }) {

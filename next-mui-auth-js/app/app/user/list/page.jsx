@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -24,6 +23,7 @@ import {
   Typography,
 } from "@mui/material";
 
+import UserDialog from "@/components/UserDialog";
 import { useUserStore, ROLE_OPTIONS } from "@/lib/userStore";
 
 const STATUS_COLOR = {
@@ -34,14 +34,22 @@ const STATUS_COLOR = {
 };
 
 export default function UserListPage() {
-  const router = useRouter();
   const users = useUserStore((s) => s.users);
   const deleteUser = useUserStore((s) => s.deleteUser);
   const bulkDelete = useUserStore((s) => s.bulkDelete);
 
+  // 需要 store 提供这俩（如果你已有 create/update，只要名字一致即可）
+  const createUser = useUserStore((s) => s.createUser);
+  const updateUser = useUserStore((s) => s.updateUser);
+
   const [q, setQ] = React.useState("");
-  const [roles, setRoles] = React.useState([]);
+  const [roles, setRoles] = React.useState([]); // 这是筛选用：多选
   const [selected, setSelected] = React.useState(new Set());
+
+  // 弹窗状态
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogMode, setDialogMode] = React.useState("create"); // create | edit
+  const [currentUser, setCurrentUser] = React.useState(null);
 
   const filtered = React.useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -86,6 +94,26 @@ export default function UserListPage() {
     setSelected(new Set());
   };
 
+  const openCreate = () => {
+    setDialogMode("create");
+    setCurrentUser(null);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (user) => {
+    setDialogMode("edit");
+    setCurrentUser(user);
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => setDialogOpen(false);
+
+  const handleSubmit = (payload) => {
+    if (dialogMode === "create") createUser(payload);
+    else updateUser(payload);
+    setDialogOpen(false);
+  };
+
   return (
     <Stack spacing={2}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -95,7 +123,9 @@ export default function UserListPage() {
           <Button color="error" variant="outlined" disabled={!selected.size} onClick={onBulkDelete}>
             多选删除 ({selected.size})
           </Button>
-          <Button variant="contained" onClick={() => router.push("/app/user/create")}>
+
+          {/* 原来是 push("/app/user/create")，现在直接弹窗 */}
+          <Button variant="contained" onClick={openCreate}>
             Add user
           </Button>
         </Stack>
@@ -169,11 +199,17 @@ export default function UserListPage() {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.role}</TableCell>
                   <TableCell>
-                    <Chip size="small" label={u.status} color={STATUS_COLOR[u.status] || "default"} variant="outlined" />
+                    <Chip
+                      size="small"
+                      label={u.status}
+                      color={STATUS_COLOR[u.status] || "default"}
+                      variant="outlined"
+                    />
                   </TableCell>
                   <TableCell align="right">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <Button size="small" variant="outlined" onClick={() => router.push(`/app/user/edit/${u.id}`)}>
+                      {/* 原来是 push(`/app/user/edit/${u.id}`)，现在直接弹窗 */}
+                      <Button size="small" variant="outlined" onClick={() => openEdit(u)}>
                         Edit
                       </Button>
                       <Button size="small" color="error" variant="outlined" onClick={() => onDeleteOne(u.id)}>
@@ -195,6 +231,15 @@ export default function UserListPage() {
           </Table>
         </TableContainer>
       </Card>
+
+      <UserDialog
+        open={dialogOpen}
+        mode={dialogMode}
+        initialUser={currentUser}
+        onClose={closeDialog}
+        onSubmit={handleSubmit}
+        roleOptions={ROLE_OPTIONS}
+      />
     </Stack>
   );
 }
