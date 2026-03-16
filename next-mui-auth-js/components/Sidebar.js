@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Box,
   Collapse,
@@ -19,6 +19,7 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonIcon from "@mui/icons-material/Person";
+import LogoutIcon from "@mui/icons-material/Logout";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
@@ -38,6 +39,7 @@ const userChildren = [
 
 export default function Sidebar({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const userActive =
     pathname === "/app/user" || pathname?.startsWith("/app/user/");
@@ -48,6 +50,18 @@ export default function Sidebar({ children }) {
     if (userActive) setUserOpen(true);
   }, [userActive]);
 
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("auth");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("auth");
+    } catch {}
+
+    router.push("/auth/login");
+    router.refresh();
+  };
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <Drawer
@@ -56,6 +70,10 @@ export default function Sidebar({ children }) {
           width: drawerWidth,
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: "border-box" },
+          "& .MuiDrawer-paper": {
+            display: "flex",
+            flexDirection: "column",
+          },
         }}
       >
         <Toolbar sx={{ px: 2 }}>
@@ -66,7 +84,8 @@ export default function Sidebar({ children }) {
 
         <Divider />
 
-        <List sx={{ py: 1 }}>
+        {/* 上半部分：导航（占满剩余空间） */}
+        <List sx={{ py: 1, flexGrow: 1 }}>
           {navItems.map((item) => {
             const active =
               pathname === item.href || pathname?.startsWith(item.href + "/");
@@ -84,7 +103,10 @@ export default function Sidebar({ children }) {
           })}
 
           {/* User 父级 */}
-          <ListItemButton selected={userActive} onClick={() => setUserOpen((v) => !v)}>
+          <ListItemButton
+            selected={userActive}
+            onClick={() => setUserOpen((v) => !v)}
+          >
             <ListItemIcon>
               <PersonIcon />
             </ListItemIcon>
@@ -108,6 +130,45 @@ export default function Sidebar({ children }) {
             </List>
           </Collapse>
         </List>
+
+        {/* 底部：Logout（填满底部区域） */}
+        <Divider />
+        <Box sx={{ p: 0 }}>
+          <List sx={{ p: 0 }}>
+            <ListItemButton
+              onClick={handleLogout}
+              sx={{
+                // 关键：填满底部整块区域
+                width: "100%",
+                borderRadius: 0,
+                py: 2,
+                px: 8,
+
+                // 浅橙底 + hover 变深
+                bgcolor: "rgba(255, 106, 0, 0.20)",
+                color: "text.primary",
+                "& .MuiListItemIcon-root": {
+                  color: "text.primary",
+                  minWidth: 40,
+                },
+                "&:hover": {
+                  bgcolor: "rgba(255, 106, 0, 0.35)",
+                },
+                "&:active": {
+                  bgcolor: "rgba(255, 106, 0, 0.45)",
+                },
+              }}
+            >
+              <ListItemIcon>
+                <LogoutIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Logout"
+                primaryTypographyProps={{ sx: { fontWeight: 600 } }}
+              />
+            </ListItemButton>
+          </List>
+        </Box>
       </Drawer>
 
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
