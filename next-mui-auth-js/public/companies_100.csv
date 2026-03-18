@@ -50,38 +50,38 @@ C47	Martin, Rose and Obrien	2	UK	Sheffield	1985	206292	3109
 C48	Hickman Ltd	2	Canada	Hamilton	1957	788430	1041
 C49	Harris, Collins and Carney	2	Japan	Nagoya	1908	194187	2819
 C50	Brooks, Lam and Hayes	2	USA	San Jose	1970	195767	1935
-C001	Walker LLC	3	Japan	Tokyo	1994	94834	744
-C002	Chapman and Sons	3	USA	Houston	1994	92538	947
-C003	Robinson, Jones and Welch	3	USA	Philadelphia	1994	430915	546
-C004	Jones Inc	3	Japan	Sapporo	2021	82422	239
-C005	Jones-Young	3	Germany	Leipzig	2020	179207	268
-C006	Washington, Ryan and Cummings	3	Canada	Winnipeg	2002	58866	116
-C007	Johnston, Sanchez and Kennedy	3	China	Tianjin	2012	131937	453
-C008	Lee-Davis	3	France	Montpellier	1993	62898	709
-C009	Gomez-Jenkins	3	China	Beijing	2015	87487	765
-C010	Brown, Valdez and Lucas	3	India	Delhi	2005	196241	216
-C011	Powell LLC	3	Japan	Kawasaki	2018	76386	163
-C012	Wright and Sons	3	France	Lyon	2007	223220	493
-C013	West, Henderson and Ramirez	3	Japan	Osaka	2018	319897	847
-C014	Baxter Inc	3	China	Beijing	1990	294582	115
-C015	Morton-Chase	3	Japan	Yokohama	2016	66337	517
-C016	Williams PLC	3	Canada	Calgary	2015	259724	944
-C017	Novak and Sons	3	USA	Chicago	2014	169698	22
-C018	Russell Group	3	France	Nice	2019	111133	312
-C019	Hancock Inc	3	France	Bordeaux	2021	118736	178
-C020	Gray Group	3	Japan	Sapporo	2003	167907	79
-C021	House-Glover	3	USA	Philadelphia	1993	164329	71
-C022	Henderson-Bernard	3	Canada	Hamilton	2023	116253	181
-C023	Stanley, Tucker and Lee	3	USA	Dallas	1995	119056	891
-C024	Novak PLC	3	Germany	Munich	1994	80828	711
-C025	Daniels, Adkins and Brown	3	Japan	Kobe	1997	154710	984
-C026	Woods, Calhoun and Schmidt	3	Japan	Saitama	1992	109822	654
-C027	Yu Inc	3	China	Tianjin	2023	152089	343
-C028	Jones Inc	3	UK	Liverpool	2010	414442	264
-C029	Hensley, Powell and David	3	UK	Sheffield	1998	91845	707
-C030	Sanchez, Wheeler and Harvey	3	UK	Edinburgh	2010	135748	971
-C031	Sandoval-Cunningham	3	China	Beijing	2019	124890	656
-C032	Donovan-Harris	3	China	Shanghai	2003	164550	538
+C001	Walker LLC	1	Japan	Tokyo	1994	94834	744
+C002	Chapman and Sons	1	USA	Houston	1994	92538	947
+C003	Robinson, Jones and Welch	1	USA	Philadelphia	1994	430915	546
+C004	Jones Inc	1	Japan	Sapporo	2021	82422	239
+C005	Jones-Young	1	Germany	Leipzig	2020	179207	268
+C006	Washington, Ryan and Cummings	1	Canada	Winnipeg	2002	58866	116
+C007	Johnston, Sanchez and Kennedy	1	China	Tianjin	2012	131937	453
+C008	Lee-Davis	1	France	Montpellier	1993	62898	709
+C009	Gomez-Jenkins	1	China	Beijing	2015	87487	765
+C010	Brown, Valdez and Lucas	1	India	Delhi	2005	196241	216
+C011	Powell LLC	1	Japan	Kawasaki	2018	76386	163
+C012	Wright and Sons	1	France	Lyon	2007	223220	493
+C013	West, Henderson and Ramirez	1	Japan	Osaka	2018	319897	847
+C014	Baxter Inc	1	China	Beijing	1990	294582	115
+C015	Morton-Chase	1	Japan	Yokohama	2016	66337	517
+C016	Williams PLC	1	Canada	Calgary	2015	259724	944
+C017	Novak and Sons	1	USA	Chicago	2014	169698	22
+C018	Russell Group	1	France	Nice	2019	111133	312
+C019	Hancock Inc	1	France	Bordeaux	2021	118736	178
+C020	Gray Group	1	Japan	Sapporo	2003	167907	79
+C021	House-Glover	1	USA	Philadelphia	1993	164329	71
+C022	Henderson-Bernard	1	Canada	Hamilton	2023	116253	18１
+C023	Stanley, Tucker and Lee	2	USA	Dallas	1995	119056	891
+C024	Novak PLC	2	Germany	Munich	1994	80828	711
+C025	Daniels, Adkins and Brown	2	Japan	Kobe	1997	154710	984
+C026	Woods, Calhoun and Schmidt	2	Japan	Saitama	1992	109822	654
+C027	Yu Inc	2	China	Tianjin	2023	152089	343
+C028	Jones Inc	2	UK	Liverpool	2010	414442	264
+C029	Hensley, Powell and David	2	UK	Sheffield	1998	91845	707
+C030	Sanchez, Wheeler and Harvey	2	UK	Edinburgh	2010	135748	971
+C031	Sandoval-Cunningham	2	China	Beijing	2019	124890	656
+C032	Donovan-Harris	2	China	Shanghai	2003	164550	538
 C033	Edwards, Baker and Anderson	3	UK	Birmingham	2012	198365	922
 C034	Evans, Stewart and Walton	3	China	Shenzhen	2013	171848	311
 C035	Smith PLC	3	Germany	Dortmund	2009	164394	646
@@ -98,3 +98,103 @@ C045	Harris-Walters	3	USA	Los Angeles	1994	177020	987
 C046	Wagner-King	3	Germany	Essen	1992	115433	874
 C047	Davis Group	3	India	Jaipur	1999	159553	460
 C048	Williams-Cook	3	Germany	Berlin	2009	198948	393
+C101	Simmons, Meadows and Griffin	3	Japan	Sapporo	2017	68363	517
+C102	Manning Group	3	USA	San Antonio	2011	180625	704
+C103	Green-Wright	3	France	Lyon	2019	137470	961
+C104	Ramirez, Strickland and Washington	3	Germany	Leipzig	1991	199374	948
+C105	Hill Inc	3	France	Lille	1991	123325	105
+C106	Mitchell, Nelson and Flores	3	France	Lyon	2019	175318	206
+C107	Miller, Hernandez and Reyes	3	USA	Phoenix	2014	108395	355
+C108	Mccarthy Inc	3	Japan	Kyoto	2010	95537	365
+C109	Russell-Daniels	3	France	Nice	2016	141856	278
+C110	Brown-Wall	3	China	Wuhan	1991	274598	787
+C111	Stein-Silva	3	USA	Philadelphia	2004	198645	685
+C112	Smith, Gilmore and Johnston	3	China	Beijing	1991	144690	992
+C113	Smith-Bell	3	Japan	Nagoya	1991	120764	656
+C114	Castaneda-Ashley	3	Germany	Frankfurt	1998	150689	504
+C115	Medina-Navarro	3	China	Hangzhou	2003	76475	496
+C116	Hurst, Freeman and Nelson	3	UK	Leeds	2000	209910	640
+C117	Johnson-Rogers	3	China	Guangzhou	2009	186387	130
+C118	Yates, Ramsey and Pittman	3	USA	Phoenix	2014	427839	426
+C119	Hooper PLC	3	Japan	Osaka	2005	94471	124
+C120	Meadows PLC	3	UK	Cardiff	1997	82213	835
+C121	Alvarado, Miller and Patterson	3	USA	Philadelphia	2017	132854	697
+C122	White-Green	3	India	Delhi	2022	123414	683
+C123	Lewis-Murphy	3	India	Mumbai	2016	72725	862
+C124	Ramirez-Bean	3	Canada	Montreal	2017	97515	390
+C125	King-Miller	3	Canada	Vancouver	2017	106836	200
+C126	Curry Inc	3	UK	Cardiff	2020	265234	496
+C127	Walker-Jones	3	France	Lille	2007	207066	350
+C128	Williams, Johnson and Wright	3	Japan	Osaka	2007	420373	922
+C129	Howell and Sons	3	Canada	Calgary	2019	291094	603
+C130	Wells Inc	3	France	Nantes	1991	231704	526
+C131	Gould, Marshall and Scott	3	India	Bangalore	2021	233098	237
+C132	Jackson-Lawson	3	India	Chennai	2011	306083	306
+C133	Higgins, Strickland and Martin	3	UK	Bristol	1990	250365	549
+C134	Rodriguez-Johnson	3	Japan	Osaka	2005	116238	757
+C135	Johnston-Odonnell	3	France	Montpellier	2005	157056	727
+C136	Sanders-Espinoza	3	Canada	Quebec City	2018	157919	831
+C137	Vargas Ltd	3	USA	Los Angeles	2008	196099	246
+C138	Garcia LLC	3	France	Toulouse	2009	252788	699
+C139	Burke, Martinez and Riggs	3	India	Pune	2023	59213	372
+C140	Reed Group	3	France	Bordeaux	2011	126985	380
+C141	Wood, Hunter and Peterson	3	Canada	Ottawa	2009	269045	277
+C142	Short-Garcia	3	Japan	Osaka	2002	126644	343
+C143	Reid-Poole	3	China	Nanjing	2001	263588	216
+C144	Hernandez, Thompson and Boyd	3	Japan	Kyoto	2007	199452	761
+C145	Nelson, Morton and Medina	3	UK	Manchester	2002	216902	323
+C146	Marshall-Petersen	3	Japan	Fukuoka	2001	516085	329
+C147	Adams, Christian and Rivas	3	USA	Dallas	1998	252573	300
+C148	Ramirez Group	3	USA	New York	2008	78187	734
+C149	Christensen PLC	3	Germany	Dortmund	1996	275836	913
+C150	Barnett, Rogers and Snyder	3	USA	San Jose	2008	254514	500
+C151	White-Lewis	3	Canada	Quebec City	2011	293358	208
+C152	Peterson-Beard	3	USA	Phoenix	2020	121964	136
+C153	Beard, Peters and Black	3	China	Tianjin	2021	224613	95
+C154	Miller Ltd	3	USA	Chicago	1999	315883	850
+C155	Freeman-Chang	3	UK	Manchester	2005	124115	141
+C156	Alvarez, Joseph and West	3	France	Lille	2004	97434	814
+C157	Davis and Sons	3	France	Montpellier	2018	237786	324
+C158	Holt-Torres	3	France	Nice	1993	165203	644
+C159	Wood, Tran and Cooper	3	China	Shenzhen	2003	207322	290
+C160	Pierce, Bell and Chavez	3	China	Guangzhou	2005	156304	197
+C161	King-Martinez	3	China	Guangzhou	1990	157060	438
+C162	Stewart Ltd	3	Canada	Halifax	2020	198967	318
+C163	Tapia, Vaughn and Lee	3	USA	Houston	2008	218857	743
+C164	Washington, Hardy and Bray	3	UK	Edinburgh	1994	222801	723
+C165	Carlson, Hooper and Wall	3	Japan	Sapporo	2002	230579	455
+C166	Perez-White	3	China	Nanjing	2004	169817	683
+C167	Erickson and Sons	3	Germany	Cologne	1999	91125	93
+C168	Williams-Brown	3	USA	Chicago	2009	185163	629
+C169	Terry-Martinez	3	UK	Edinburgh	1997	75998	499
+C170	Garcia-Smith	3	UK	Sheffield	2007	111832	532
+C171	Harrison-Alexander	3	Canada	Quebec City	1995	53240	632
+C172	Sheppard LLC	3	USA	San Antonio	2010	73016	638
+C173	Wilson-Jones	3	UK	London	1995	310947	254
+C174	Jones-Soto	3	USA	Phoenix	1992	223032	801
+C175	Hernandez PLC	3	Germany	Dortmund	2023	148596	687
+C176	Miller-Wright	3	Canada	Ottawa	2001	37570	619
+C177	Duran, Obrien and Gibbs	3	France	Montpellier	1995	153402	501
+C178	Rowe Group	3	India	Ahmedabad	2011	122559	348
+C179	Kerr-Evans	3	China	Guangzhou	2011	332640	441
+C180	Branch, Torres and Oliver	3	Canada	Ottawa	2015	182051	853
+C181	Choi, Garcia and Farmer	3	USA	San Diego	1995	259830	342
+C182	Clark, Guerrero and Moore	3	UK	Leeds	1997	225496	811
+C183	Arnold and Sons	3	France	Bordeaux	1990	216856	693
+C184	Ortiz Ltd	3	Canada	Winnipeg	1993	195954	212
+C185	Harrison, Johnson and Roberts	3	India	Jaipur	2021	121423	660
+C186	Warner-Gibson	3	Canada	Toronto	2003	190045	293
+C187	Hall, Baker and Moody	3	Germany	Cologne	2018	184683	921
+C188	Guerrero, Peck and Coleman	3	Canada	Montreal	1991	138000	665
+C189	Walker, Hernandez and Baker	3	Japan	Yokohama	2009	179901	584
+C190	Jones and Sons	3	USA	Dallas	2016	281410	115
+C191	Larson-Holloway	3	Japan	Osaka	2019	185567	989
+C192	Gonzales-Harrison	3	China	Guangzhou	2021	112814	975
+C193	Lyons-Bender	3	UK	Bristol	2007	194179	445
+C194	Fernandez, Kim and George	3	Canada	Quebec City	2005	118689	487
+C195	Navarro-Munoz	3	Germany	Düsseldorf	2002	299338	963
+C196	Davis Ltd	3	Germany	Munich	2007	164546	811
+C197	Matthews, Smith and Hubbard	3	France	Nantes	2022	194162	293
+C198	Johnston-Hines	3	USA	Phoenix	2009	57133	877
+C199	Ruiz Ltd	3	Canada	Vancouver	2018	147010	571
+C200	Moon-White	3	Canada	Edmonton	2011	266855	585
