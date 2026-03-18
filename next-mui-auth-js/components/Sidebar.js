@@ -77,8 +77,8 @@ export default function Sidebar({ children }) {
         }}
       >
         <Toolbar sx={{ px: 2 }}>
-          <Typography variant="h6" noWrap>
-            App
+          <Typography variant="h5" sx={{ fontWeight: 800 }}>
+            Supplier Tracker
           </Typography>
         </Toolbar>
 
@@ -171,8 +171,21 @@ export default function Sidebar({ children }) {
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, px: 20, py: 1.5 }}>
-        {/* <Toolbar /> */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          py: 1.5,
+
+          // 右边距（保持正常）
+          pr: { xs: 2, md: 3, lg: 4 },
+
+          // 左边距（更大 -> 内容整体向右）
+          pl: { xs: 3, md: 10, lg: 12 },
+
+          minWidth: 0,
+        }}
+      >
         {children}
       </Box>
     </Box>
