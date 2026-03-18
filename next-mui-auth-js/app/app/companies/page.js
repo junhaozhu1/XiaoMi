@@ -204,7 +204,10 @@ export default function CompaniesPage() {
   return (
     <Box sx={{ maxWidth: drawerContentMaxWidth, mx: "auto" }}>
       <Stack spacing={2}>
-        <Typography variant="h4">Companies</Typography>
+        {/* <Typography variant="h4">Companies</Typography> */}
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          Companies
+        </Typography>
 
         <Card sx={{ p: 2 }}>
           <Stack direction={{ xs: "column", md: "row" }} spacing={2}>

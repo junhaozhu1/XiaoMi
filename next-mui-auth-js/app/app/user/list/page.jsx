@@ -117,7 +117,10 @@ export default function UserListPage() {
   return (
     <Stack spacing={2}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h4">User / List</Typography>
+        {/* <Typography variant="h4">User / List</Typography> */}
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          User List
+        </Typography>
 
         <Stack direction="row" spacing={1}>
           <Button color="error" variant="outlined" disabled={!selected.size} onClick={onBulkDelete}>

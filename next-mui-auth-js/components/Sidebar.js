@@ -142,7 +142,7 @@ export default function Sidebar({ children }) {
                 width: "100%",
                 borderRadius: 0,
                 py: 2,
-                px: 8,
+                px:12,
 
                 // 浅橙底 + hover 变深
                 bgcolor: "rgba(255, 106, 0, 0.20)",
@@ -171,8 +171,8 @@ export default function Sidebar({ children }) {
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
+      <Box component="main" sx={{ flexGrow: 1, px: 20, py: 1.5 }}>
+        {/* <Toolbar /> */}
         {children}
       </Box>
     </Box>
