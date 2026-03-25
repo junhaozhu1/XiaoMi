@@ -388,12 +388,12 @@ export default function DashboardPage() {
                       <Line data={lineData} options={lineOptions} />
                     </Box>
 
-                    <Typography
+                    {/* <Typography
                       variant="body2"
                       sx={{ mt: 1, color: "text.secondary" }}
                     >
                       Hover 折线查看每年的累积公司数（可交互）。
-                    </Typography>
+                    </Typography> */}
                   </CardContent>
                 </Card>
               </Box>
