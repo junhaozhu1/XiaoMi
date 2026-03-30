@@ -31,7 +31,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const drawerContentMaxWidth = 1100;
 
-const LEVEL_OPTIONS = ["1", "2", "3"];
+const LEVEL_OPTIONS = ["1", "2", "3", "4"];
 
 function formatNumber(n) {
   const num = Number(n);
@@ -169,6 +169,17 @@ export default function CompaniesPage() {
           annual_revenue: String(r.annual_revenue ?? "").trim(),
           employees: String(r.employees ?? "").trim(),
         }));
+        // const data = (parsed.data || []).map((r, i) => {
+        //   const level = String(r.level ?? "").trim();
+        //   console.log("row", i, "level(raw)=", r.level, "level(trim)=", level);
+
+        //   return {
+        //     ...r,
+        //     level,
+        //     annual_revenue: String(r.annual_revenue ?? "").trim(),
+        //     employees: String(r.employees ?? "").trim(),
+        //   };
+        // });
 
         if (!ignore) setRows(data);
       } catch (e) {

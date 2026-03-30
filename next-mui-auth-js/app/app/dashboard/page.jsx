@@ -155,7 +155,7 @@ export default function DashboardPage() {
   const levelDist = React.useMemo(() =>
     calcLevelDistribution(
       companies.map((c) => ({ ...c, level: String(c.level) })),
-      ["1", "2", "3"]
+      ["1", "2", "3", "4"]
   ),
     [companies]
   );
