@@ -112,7 +112,7 @@ export default function DashboardPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("/companies_100.csv", { cache: "no-store" });
+        const res = await fetch("/companies_data.csv", { cache: "no-store" });
         if (!res.ok) throw new Error(`Failed to fetch csv: ${res.status}`);
 
         const text = await res.text();
@@ -412,7 +412,7 @@ export default function DashboardPage() {
         {loading ? (
           <Card sx={{ p: 3 }}>
             <Typography sx={{ color: "text.secondary" }}>
-              Loading companies_100.csv ...
+              Loading companies_data.csv ...
             </Typography>
           </Card>
         ) : error ? (
