@@ -2,6 +2,7 @@
 
 import React from "react";
 import Papa from "papaparse";
+import * as d3 from "d3";
 
 import {
   Box,
@@ -26,6 +27,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 import { Doughnut, Line, Bar } from "react-chartjs-2";
 import { BarElement } from "chart.js";
@@ -81,29 +83,358 @@ function MetricCard({ title, value, subtitle }) {
   );
 }
 
+/**
+ * Build hierarchy based on dimension:
+ * - level:   root -> level -> company
+ * - country: root -> country -> city -> company
+ * - city:    root -> city -> company
+ */
+function buildBubbleHierarchy(companies, dimension) {
+  const root = { name: "Companies", children: [] };
+
+  const getCompanyLeaf = (c) => ({
+    name: c.company_name || c.company_code || "Unknown company",
+    value: Math.max(1, Number(c.annual_revenue) || 1),
+    meta: `level:${c.level} · ${c.country || "-"} / ${c.city || "-"} · employees:${c.employees ?? "-"} · revenue:${c.annual_revenue ?? "-"}`,
+    raw: c,
+  });
+
+  const ensureChild = (parent, key) => {
+    const k = key || "Unknown";
+    let node = parent.children.find((x) => x.name === k);
+    if (!node) {
+      node = { name: k, children: [] };
+      parent.children.push(node);
+    }
+    return node;
+  };
+
+  for (const c of companies) {
+    const country = c.country || "Unknown country";
+    const city = c.city || "Unknown city";
+    const level = Number.isFinite(c.level) ? `Level ${c.level}` : "Level ?";
+
+    if (dimension === "level") {
+      const levelNode = ensureChild(root, level);
+      levelNode.children.push(getCompanyLeaf(c));
+    } else if (dimension === "city") {
+      const cityNode = ensureChild(root, city);
+      cityNode.children.push(getCompanyLeaf(c));
+    } else {
+      const countryNode = ensureChild(root, country);
+      const cityNode = ensureChild(countryNode, city);
+      cityNode.children.push(getCompanyLeaf(c));
+    }
+  }
+
+  const sortTree = (node) => {
+    if (!node.children) return;
+    node.children.sort((a, b) => a.name.localeCompare(b.name));
+    node.children.forEach(sortTree);
+  };
+  sortTree(root);
+
+  return root;
+}
+
+/**
+ * Bubble interaction rules (as requested):
+ * - No highlight/arming.
+ * - Click goes to NEXT level directly.
+ * - Cannot skip levels: only nodes that are direct children of current focus are clickable.
+ * - Leaf nodes (companies) do not zoom.
+ * - Background click zooms out to root.
+ */
+function ZoomableCirclePacking({ data, height = 520 }) {
+  const theme = useTheme();
+  const containerRef = React.useRef(null);
+  const svgRef = React.useRef(null);
+
+  const [size, setSize] = React.useState({ width: 800, height });
+  const [tip, setTip] = React.useState({
+    open: false,
+    x: 0,
+    y: 0,
+    title: "",
+    subtitle: "",
+  });
+
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      const cr = entries?.[0]?.contentRect;
+      if (!cr) return;
+      setSize({ width: Math.max(320, cr.width), height });
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [height]);
+
+  React.useEffect(() => {
+    if (!data || !svgRef.current) return;
+
+    const { width } = size;
+    const h = size.height;
+
+    const diameter = Math.min(width, h);
+    const margin = 8;
+    const inner = diameter - margin * 2;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    svg
+      .attr("viewBox", `${-diameter / 2} ${-diameter / 2} ${diameter} ${diameter}`)
+      .attr("width", "100%")
+      .attr("height", h)
+      .style("display", "block");
+
+    // ---- IMPORTANT: background catcher rect (always clickable) ----
+    // Put it BEFORE nodes group so it is behind everything visually,
+    // but it will still receive clicks where no element stops propagation.
+    // We also force it to be clickable.
+    const bg = svg
+      .append("rect")
+      .attr("x", -diameter / 2)
+      .attr("y", -diameter / 2)
+      .attr("width", diameter)
+      .attr("height", diameter)
+      .attr("fill", "transparent")
+      .style("pointer-events", "all");
+
+    const pack = d3.pack().size([inner, inner]).padding(3);
+
+    const root = d3
+      .hierarchy(data)
+      .sum((d) => (d.children ? 0 : d.value ?? 1))
+      .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+
+    pack(root);
+
+    let focus = root;
+    let view;
+
+    const maxDepth = Math.max(2, root.height || 2);
+    const color = d3
+      .scaleLinear()
+      .domain([0, maxDepth])
+      .range([theme.palette.primary.light, theme.palette.primary.dark])
+      .interpolate(d3.interpolateHcl);
+
+    const g = svg.append("g");
+
+    const nodes = g
+      .selectAll("circle.node")
+      .data(root.descendants())
+      .join("circle")
+      .attr("class", "node")
+      .attr("fill", (d) => (d.children ? color(d.depth) : theme.palette.warning.main))
+      .attr("fill-opacity", (d) => (d.children ? 0.18 : 0.88))
+      .attr("stroke", (d) => (d.children ? theme.palette.divider : "transparent"))
+      .attr("stroke-width", 1);
+
+    const groupLabel = g
+      .append("g")
+      .style("font", "12px system-ui, -apple-system, Segoe UI, Roboto, Arial")
+      .attr("text-anchor", "middle")
+      .selectAll("text")
+      .data(root.descendants().filter((d) => d.children))
+      .join("text")
+      .style("fill", theme.palette.text.primary)
+      .style("fill-opacity", 0)
+      .style("display", "none")
+      .style("pointer-events", "none")
+      .text((d) => d.data?.name ?? "");
+
+    const leafLabel = g
+      .append("g")
+      .style("font", "11px system-ui, -apple-system, Segoe UI, Roboto, Arial")
+      .attr("text-anchor", "middle")
+      .selectAll("text")
+      .data(root.descendants().filter((d) => !d.children))
+      .join("text")
+      .style("fill", theme.palette.getContrastText(theme.palette.warning.main))
+      .style("paint-order", "stroke")
+      .style("stroke", "rgba(0,0,0,0.35)")
+      .style("stroke-width", 3)
+      .style("display", "none")
+      .style("pointer-events", "none")
+      .text((d) => d.data?.name ?? "");
+
+    function isCompanyLevelFocus(f) {
+      return !!f?.children?.length && f.children.every((c) => !c.children);
+    }
+
+    function zoomTo(v) {
+      const k = inner / v[2];
+      view = v;
+
+      nodes.attr(
+        "transform",
+        (d) => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`
+      );
+      nodes.attr("r", (d) => d.r * k);
+
+      groupLabel.attr(
+        "transform",
+        (d) => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`
+      );
+      leafLabel.attr(
+        "transform",
+        (d) => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`
+      );
+
+      const companyLevel = isCompanyLevelFocus(focus);
+
+      groupLabel
+        .style("display", (d) => (d.parent === focus ? "inline" : "none"))
+        .style("fill-opacity", (d) => (d.parent === focus ? 1 : 0));
+
+      leafLabel
+        .style("display", (d) => {
+          if (!companyLevel) return "none";
+          if (d.parent !== focus) return "none";
+          const r = d.r * k;
+          return r >= 10 ? "inline" : "none";
+        })
+        .text((d) => {
+          const r = d.r * k;
+          const name = d.data?.name ?? "";
+          const maxChars = Math.max(4, Math.floor(r / 2.8));
+          return name.length > maxChars ? name.slice(0, maxChars) + "…" : name;
+        });
+
+      nodes.style("cursor", (d) => {
+        const canClick = d.parent === focus && !!d.children;
+        return canClick ? "pointer" : "default";
+      });
+    }
+
+    function zoom(event, d) {
+      focus = d;
+
+      const transition = svg
+        .transition()
+        .duration(event?.altKey ? 1200 : 650)
+        .ease(d3.easeCubicOut)
+        .tween("zoom", () => {
+          const i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]);
+          return (t) => zoomTo(i(t));
+        });
+
+      groupLabel
+        .transition(transition)
+        .style("fill-opacity", (n) => (n.parent === focus ? 1 : 0))
+        .on("start", function (n) {
+          if (n.parent === focus) this.style.display = "inline";
+        })
+        .on("end", function (n) {
+          if (n.parent !== focus) this.style.display = "none";
+        });
+    }
+
+    nodes
+      .on("mousemove", (event, d) => {
+        const path = d
+          .ancestors()
+          .reverse()
+          .map((x) => x.data?.name)
+          .filter(Boolean)
+          .join(" / ");
+
+        const extra =
+          d.data && !d.children && d.data.meta
+            ? ` · ${d.data.meta}`
+            : d.value
+              ? ` · value:${d.value}`
+              : "";
+
+        setTip({
+          open: true,
+          x: event.clientX,
+          y: event.clientY,
+          title: d.data?.name ?? "",
+          subtitle: `${path}${extra}`,
+        });
+      })
+      .on("mouseleave", () => setTip((t) => ({ ...t, open: false })))
+      nodes.on("click", (event, d) => {
+        // 只处理“真正点到的那个圆”
+        // event.currentTarget === 当前这个 circle
+        // event.target 通常也是这个 circle（除非你点到别的元素，但这里主要用来区分）
+        // 关键：当你点在“大圈空白处”时，target = focus circle；
+        // 当你点在子 bubble 上时，target = 子 bubble circle，不会进这个分支。
+        // A) 点到当前 focus 大圈本身（通常意味着点在大圈空白处）
+        if (d === focus && event.target === event.currentTarget) {
+          if (focus.parent) zoom(event, focus.parent);
+          event.stopPropagation();
+          return;
+        }
+        // B) 只允许点击 focus 的“直接子节点”进入下一层（不能跨级）
+        const canEnterNext = d.parent === focus && !!d.children;
+        if (canEnterNext) {
+          zoom(event, d);
+          event.stopPropagation();
+          return;
+        }
+        // C) 其它：叶子 or 跨级点击 => 不响应
+        event.stopPropagation();
+      });
+
+    // Background click: zoom out to ROOT (always works now)
+    bg.on("click", (event) => {
+      if (focus?.parent) zoom(event, focus.parent);
+    });
+
+    zoomTo([root.x, root.y, root.r * 2]);
+  }, [data, size.width, size.height, theme]);
+
+  return (
+    <Box ref={containerRef} sx={{ width: "100%", minWidth: 0 }}>
+      <Box sx={{ position: "relative", height }}>
+        <svg ref={svgRef} />
+        {tip.open ? (
+          <Box
+            sx={{
+              position: "fixed",
+              left: tip.x + 12,
+              top: tip.y + 12,
+              zIndex: 2000,
+              pointerEvents: "none",
+              bgcolor: "rgba(17, 24, 39, 0.92)",
+              color: "white",
+              px: 1.25,
+              py: 0.75,
+              borderRadius: 1,
+              maxWidth: 620,
+              boxShadow: 6,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+              {tip.title}
+            </Typography>
+            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+              {tip.subtitle}
+            </Typography>
+          </Box>
+        ) : null}
+      </Box>
+    </Box>
+  );
+}
+
 export default function DashboardPage() {
   const [companies, setCompanies] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
 
-  // =========================
-  // 可调参数（你只需要改这里）
-  // =========================
+  const KPI_MIN_CARD_WIDTH = 150;
+  const KPI_GAP = 3;
 
-  // KPI 四个卡片：控制最小宽度与间距
-  const KPI_MIN_CARD_WIDTH = 150; // px
-  const KPI_GAP = 3; // MUI spacing单位：5 => 40px
-
-  // 图表两张卡片：控制左右宽度比例与间距、以及何时从两列变一列
-  // 例：CHART_COL_WEIGHTS = [5, 7] => 左 5/12 右 7/12（类似你原来的 lg=5/7）
   const CHART_COL_WEIGHTS = [5, 7];
-  const CHART_GAP = 2; // 2 => 16px
-
-  // 小于这个宽度时，两张图表卡改为上下排列（1列）
-  // 你可以改成 900 / 1000 / 1200 等来“更早或更晚”换行
+  const CHART_GAP = 2;
   const CHART_STACK_BREAKPOINT_PX = 1200;
 
-  // 1) 读取 public/companies_100.csv 全量数据
   React.useEffect(() => {
     let ignore = false;
 
@@ -150,21 +481,22 @@ export default function DashboardPage() {
     };
   }, []);
 
-  // 2) 动态计算 dashboard 指标
   const summary = React.useMemo(() => calcSummary(companies), [companies]);
-  const levelDist = React.useMemo(() =>
-    calcLevelDistribution(
-      companies.map((c) => ({ ...c, level: String(c.level) })),
-      ["1", "2", "3", "4"]
-  ),
+
+  const levelDist = React.useMemo(
+    () =>
+      calcLevelDistribution(
+        companies.map((c) => ({ ...c, level: String(c.level) })),
+        ["1", "2", "3", "4"]
+      ),
     [companies]
   );
+
   const cumulative = React.useMemo(
     () => calcCumulativeByFoundedYear(companies),
     [companies]
   );
 
-  // 3) Doughnut 数据
   const doughnutData = React.useMemo(
     () => ({
       labels: levelDist.items.map((x) => `Level ${x.level}`),
@@ -203,7 +535,6 @@ export default function DashboardPage() {
     [levelDist.total]
   );
 
-  // 4) 折线图数据
   const lineData = React.useMemo(
     () => ({
       labels: cumulative.labels,
@@ -230,11 +561,7 @@ export default function DashboardPage() {
       interaction: { mode: "index", intersect: false },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => ` ${ctx.parsed.y} companies`,
-          },
-        },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} companies` } },
       },
       scales: {
         x: { ticks: { autoSkip: true, maxTicksLimit: 12, maxRotation: 0 } },
@@ -244,12 +571,13 @@ export default function DashboardPage() {
     []
   );
 
-  // ===== Bar chart state =====
+  // ===== Shared filter state =====
+  const [vizType, setVizType] = React.useState("bar"); // "bar" | "bubble"
   const [barDimension, setBarDimension] = React.useState("country"); // "level" | "country" | "city"
   const [barFilter, setBarFilter] = React.useState({
-    level: [], // number[]
-    country: [], // string[]
-    city: [], // string[]
+    level: [],
+    country: [],
+    city: [],
     founded_year: { start: "", end: "" },
     annual_revenue: { min: "", max: "" },
     employees: { min: "", max: "" },
@@ -260,7 +588,10 @@ export default function DashboardPage() {
   }
 
   const levelOptions = React.useMemo(
-    () => uniq(companies.map((c) => c.level).filter((x) => Number.isFinite(x))).sort((a, b) => a - b),
+    () =>
+      uniq(companies.map((c) => c.level).filter((x) => Number.isFinite(x))).sort(
+        (a, b) => a - b
+      ),
     [companies]
   );
   const countryOptions = React.useMemo(
@@ -285,7 +616,7 @@ export default function DashboardPage() {
     return true;
   }
 
-  const barFilteredCompanies = React.useMemo(() => {
+  const filteredCompanies = React.useMemo(() => {
     const fyStart = toNum(barFilter.founded_year.start);
     const fyEnd = toNum(barFilter.founded_year.end);
     const revMin = toNum(barFilter.annual_revenue.min);
@@ -306,6 +637,7 @@ export default function DashboardPage() {
     });
   }, [companies, barFilter]);
 
+  // ===== Bar data =====
   function groupCounts(companiesInput, dimension) {
     const map = new Map();
     for (const c of companiesInput) {
@@ -324,12 +656,12 @@ export default function DashboardPage() {
     if (dimension === "level") {
       rows.sort(
         (a, b) =>
-          Number(a.label.replace("Level ", "")) - Number(b.label.replace("Level ", ""))
+          Number(a.label.replace("Level ", "")) -
+          Number(b.label.replace("Level ", ""))
       );
     } else {
       rows.sort((a, b) => b.count - a.count);
     }
-
     return rows;
   }
 
@@ -341,14 +673,12 @@ export default function DashboardPage() {
   }
 
   const barGrouped = React.useMemo(() => {
-    const rows = groupCounts(barFilteredCompanies, barDimension);
-
-    // Top20 + Others 仅用于 country/city
+    const rows = groupCounts(filteredCompanies, barDimension);
     if (barDimension === "country" || barDimension === "city") {
       return toTopNWithOthers(rows, 10);
     }
     return rows;
-  }, [barFilteredCompanies, barDimension]);
+  }, [filteredCompanies, barDimension]);
 
   const barData = React.useMemo(
     () => ({
@@ -357,7 +687,9 @@ export default function DashboardPage() {
         {
           label: "Companies",
           data: barGrouped.map((x) => x.count),
-          backgroundColor: barGrouped.map((x) => (x.label === "Others" ? "#9ca3af" : "#ff6a00")),
+          backgroundColor: barGrouped.map((x) =>
+            x.label === "Others" ? "#9ca3af" : "#ff6a00"
+          ),
           borderRadius: 6,
           maxBarThickness: 48,
         },
@@ -372,11 +704,7 @@ export default function DashboardPage() {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => ` ${ctx.parsed.y} companies`,
-          },
-        },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} companies` } },
       },
       scales: {
         x: {
@@ -384,7 +712,6 @@ export default function DashboardPage() {
             autoSkip: false,
             maxRotation: 0,
             callback: function (val) {
-              // 让长标签不至于太夸张：截断显示
               const label = this.getLabelForValue(val);
               return label.length > 12 ? label.slice(0, 12) + "…" : label;
             },
@@ -396,14 +723,14 @@ export default function DashboardPage() {
     []
   );
 
+  // ===== Bubble data (dimension-aware) =====
+  const bubbleData = React.useMemo(
+    () => buildBubbleHierarchy(filteredCompanies, barDimension),
+    [filteredCompanies, barDimension]
+  );
+
   return (
-    <Box
-      sx={{
-        width: "100%",
-        minWidth: 0,
-        boxSizing: "border-box",
-      }}
-    >
+    <Box sx={{ width: "100%", minWidth: 0, boxSizing: "border-box" }}>
       <Stack spacing={2} sx={{ width: "100%" }}>
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Dashboard
@@ -421,7 +748,7 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <>
-            {/* KPI 卡片区（CSS Grid：等宽 + 可调最小宽度） */}
+            {/* KPI */}
             <Box
               sx={{
                 width: "100%",
@@ -464,18 +791,14 @@ export default function DashboardPage() {
               </Box>
             </Box>
 
-            {/* 图表区（CSS Grid：左右宽度比例可调 + 可控何时变一列） */}
+            {/* Top charts */}
             <Box
               sx={{
                 width: "100%",
                 display: "grid",
                 gap: CHART_GAP,
                 alignItems: "stretch",
-
-                // 默认两列：用权重控制左右宽度比例（类似 5/7、4/8、6/6 等）
                 gridTemplateColumns: `minmax(0, ${CHART_COL_WEIGHTS[0]}fr) minmax(0, ${CHART_COL_WEIGHTS[1]}fr)`,
-
-                // 屏幕小于某个阈值时改成一列（上下排列）
                 [`@media (max-width:${CHART_STACK_BREAKPOINT_PX}px)`]: {
                   gridTemplateColumns: "1fr",
                 },
@@ -490,7 +813,6 @@ export default function DashboardPage() {
 
                     <Box sx={{ position: "relative", height: 320, width: "100%" }}>
                       <Doughnut data={doughnutData} options={doughnutOptions} />
-
                       <Box
                         sx={{
                           position: "absolute",
@@ -550,20 +872,14 @@ export default function DashboardPage() {
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
                       founded year 累积加入公司数量
                     </Typography>
-
                     <Box sx={{ height: 360, width: "100%" }}>
                       <Line data={lineData} options={lineOptions} />
                     </Box>
-
-                    {/* <Typography
-                      variant="body2"
-                      sx={{ mt: 1, color: "text.secondary" }}
-                    >
-                      Hover 折线查看每年的累积公司数（可交互）。
-                    </Typography> */}
                   </CardContent>
                 </Card>
               </Box>
+
+              {/* Shared filter + switch Bar/Bubble + dimension switch */}
               <Box sx={{ minWidth: 0, gridColumn: "1 / -1" }}>
                 <Card sx={{ height: "100%", width: "100%", minWidth: 0 }}>
                   <CardContent>
@@ -579,25 +895,38 @@ export default function DashboardPage() {
                       >
                         <Box>
                           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                            Companies（Top 10 + Others）
+                            Companies（with filters）
                           </Typography>
                           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                            Count by dimension with filters
+                            Bubble：点击直接进入下一级；只能点击当前层的子节点（不允许跨级）
                           </Typography>
                         </Box>
 
-                        <ToggleButtonGroup
-                          size="small"
-                          value={barDimension}
-                          exclusive
-                          onChange={(_, v) => v && setBarDimension(v)}
-                        >
-                          <ToggleButton value="level">Level</ToggleButton>
-                          <ToggleButton value="country">Country</ToggleButton>
-                          <ToggleButton value="city">City</ToggleButton>
-                        </ToggleButtonGroup>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <ToggleButtonGroup
+                            size="small"
+                            value={vizType}
+                            exclusive
+                            onChange={(_, v) => v && setVizType(v)}
+                          >
+                            <ToggleButton value="bar">Bar</ToggleButton>
+                            <ToggleButton value="bubble">Bubble</ToggleButton>
+                          </ToggleButtonGroup>
+
+                          <ToggleButtonGroup
+                            size="small"
+                            value={barDimension}
+                            exclusive
+                            onChange={(_, v) => v && setBarDimension(v)}
+                          >
+                            <ToggleButton value="level">Level</ToggleButton>
+                            <ToggleButton value="country">Country</ToggleButton>
+                            <ToggleButton value="city">City</ToggleButton>
+                          </ToggleButtonGroup>
+                        </Stack>
                       </Box>
 
+                      {/* Filters */}
                       <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                         <FormControl fullWidth size="small">
                           <InputLabel>Level</InputLabel>
@@ -744,16 +1073,34 @@ export default function DashboardPage() {
                         />
                         <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
                           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                            Showing: {barFilteredCompanies.length} / {companies.length}
+                            Showing: {filteredCompanies.length} / {companies.length}
                           </Typography>
                         </Box>
                       </Stack>
 
                       <Divider />
 
-                      <Box sx={{ height: 420, width: "100%" }}>
-                        <Bar data={barData} options={barOptions} />
-                      </Box>
+                      {vizType === "bar" ? (
+                        <Box sx={{ height: 420, width: "100%" }}>
+                          <Bar data={barData} options={barOptions} />
+                        </Box>
+                      ) : (
+                        <Box sx={{ width: "100%" }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "text.secondary", display: "block", mb: 1 }}
+                          >
+                            Bubble 分级规则：
+                            {barDimension === "level"
+                              ? " root→level→company"
+                              : barDimension === "city"
+                                ? " root→city→company"
+                                : " root→country→city→company"}
+                            {" · "}（点击 bubble 进入下一层；背景点击回到 root）
+                          </Typography>
+                          <ZoomableCirclePacking data={bubbleData} height={560} />
+                        </Box>
+                      )}
                     </Stack>
                   </CardContent>
                 </Card>
