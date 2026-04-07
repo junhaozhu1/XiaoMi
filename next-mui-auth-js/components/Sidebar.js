@@ -35,6 +35,7 @@ const userChildren = [
   // { label: "Cards", href: "/app/user/cards" },
   { label: "List", href: "/app/user/list" },
   // { label: "Create", href: "/app/user/create" },
+  { label: "Account", href: "/app/user/account" },
 ];
 
 export default function Sidebar({ children }) {

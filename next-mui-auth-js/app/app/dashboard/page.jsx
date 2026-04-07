@@ -233,14 +233,32 @@ function ZoomableCirclePacking({ data, height = 520 }) {
       .attr("stroke", (d) => (d.children ? theme.palette.divider : "transparent"))
       .attr("stroke-width", 1);
 
+    // const groupLabel = g
+    //   .append("g")
+    //   .style("font", "12px system-ui, -apple-system, Segoe UI, Roboto, Arial")
+    //   .attr("text-anchor", "middle")
+    //   .selectAll("text")
+    //   .data(root.descendants().filter((d) => d.children))
+    //   .join("text")
+    //   .style("fill", theme.palette.text.primary)
+    //   .style("fill-opacity", 0)
+    //   .style("display", "none")
+    //   .style("pointer-events", "none")
+    //   .text((d) => d.data?.name ?? "");
     const groupLabel = g
       .append("g")
-      .style("font", "12px system-ui, -apple-system, Segoe UI, Roboto, Arial")
+      .style("font-family", "system-ui, -apple-system, Segoe UI, Roboto, Arial")
+      .style("font-size", "18px")              // 更大
+      .style("font-weight", 900)               // 更粗
       .attr("text-anchor", "middle")
       .selectAll("text")
       .data(root.descendants().filter((d) => d.children))
       .join("text")
-      .style("fill", theme.palette.text.primary)
+      .style("fill", "#111")                   // 深色字更稳（也可用 theme.palette.text.primary）
+      .style("paint-order", "stroke")          // 关键：描边
+      .style("stroke", "rgba(255,255,255,0.90)") // 白描边让它压住背景
+      .style("stroke-width", 1)                // 描边粗一点更明显
+      .style("stroke-linejoin", "round")
       .style("fill-opacity", 0)
       .style("display", "none")
       .style("pointer-events", "none")
@@ -288,6 +306,11 @@ function ZoomableCirclePacking({ data, height = 520 }) {
 
       groupLabel
         .style("display", (d) => (d.parent === focus ? "inline" : "none"))
+        .style("font-size", (d) => {
+            const k = inner / v[2];
+            const r = d.r * k;
+            return `${Math.max(14, Math.min(26, r / 6))}px`; // 14~26px之间
+          })
         .style("fill-opacity", (d) => (d.parent === focus ? 1 : 0));
 
       leafLabel
