@@ -15,6 +15,13 @@ import {
   MenuItem,
 } from "@mui/material";
 
+const PASSWORD_RULE_HELPER = "至少8位，必须同时包含字母和数字，只能字母/数字";
+
+function validPassword(pw) {
+  if (!pw) return false;
+  return /^[A-Za-z\d]+$/.test(pw) && /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(pw);
+}
+
 export default function UserDialog({
   open,
   mode, // "create" | "edit"
@@ -22,31 +29,58 @@ export default function UserDialog({
   onClose,
   onSubmit,
   roleOptions = [],
+  disableRole = false, // 新增：manager true
 }) {
   const isEdit = mode === "edit";
 
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
+  const [title, setTitle] = React.useState("");
   const [role, setRole] = React.useState("");
   const [status, setStatus] = React.useState("active");
+  const [password, setPassword] = React.useState("");
 
   React.useEffect(() => {
     if (!open) return;
+
     setName(initialUser?.name ?? "");
     setEmail(initialUser?.email ?? "");
-    setRole(initialUser?.role ?? "");
+    setTitle(initialUser?.title ?? "");
+    // 关键：默认 role
+    // - edit：用 initialUser.role
+    // - create：默认 roleOptions[0]
+    const defaultRole = isEdit ? initialUser?.role : roleOptions?.[0];
+    setRole(defaultRole ?? "");
     setStatus(initialUser?.status ?? "active");
-  }, [open, initialUser]);
+    setPassword("");
+  }, [open, initialUser, isEdit, roleOptions]);
 
-  const canSave = name.trim() && email.trim() && role;
+  const canSave =
+    name.trim() &&
+    (isEdit ? true : email.trim()) &&
+    role &&
+    (isEdit ? true : validPassword(password));
 
   const handleSave = () => {
-    onSubmit({
-      ...(isEdit ? { id: initialUser.id } : {}),
+    const base = {
       name: name.trim(),
-      email: email.trim(),
+      title: title.trim(),
       role,
       status,
+    };
+
+    if (isEdit) {
+      onSubmit({
+        id: initialUser.id,
+        ...base,
+      });
+      return;
+    }
+
+    onSubmit({
+      ...base,
+      email: email.trim().toLowerCase(),
+      password,
     });
   };
 
@@ -57,9 +91,29 @@ export default function UserDialog({
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField label="姓名" value={name} onChange={(e) => setName(e.target.value)} />
-          <TextField label="邮箱" value={email} onChange={(e) => setEmail(e.target.value)} />
 
-          <FormControl>
+          <TextField
+            label="邮箱"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isEdit}
+            helperText={isEdit ? "编辑模式下不允许修改邮箱" : ""}
+          />
+
+          <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+
+          {!isEdit && (
+            <TextField
+              label="初始密码"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              helperText={PASSWORD_RULE_HELPER}
+              error={password.length > 0 && !validPassword(password)}
+            />
+          )}
+
+          <FormControl disabled={disableRole}>
             <InputLabel id="edit-role-label">Title / Role</InputLabel>
             <Select
               labelId="edit-role-label"

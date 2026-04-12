@@ -31,12 +31,30 @@ function validatePassword(password) {
   return "";
 }
 
+// 可选字段：只做长度限制
+function validateName(name) {
+  if (!name) return "";
+  if (name.trim().length > 100) return "姓名过长（最多100字符）";
+  return "";
+}
+
+function validateTitle(title) {
+  if (!title) return "";
+  if (title.trim().length > 100) return "Title 过长（最多100字符）";
+  return "";
+}
+
 export default function SignupPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
   const [password, setPassword] = useState("");
 
   const [emailErr, setEmailErr] = useState("");
+  const [nameErr, setNameErr] = useState("");
+  const [titleErr, setTitleErr] = useState("");
   const [passwordErr, setPasswordErr] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -48,30 +66,39 @@ export default function SignupPage() {
     e.preventDefault();
 
     const eErr = validateEmail(email);
+    const nErr = validateName(name);
+    const tErr = validateTitle(title);
     const pErr = validatePassword(password);
+
     setEmailErr(eErr);
+    setNameErr(nErr);
+    setTitleErr(tErr);
     setPasswordErr(pErr);
-    if (eErr || pErr) return;
+
+    if (eErr || nErr || tErr || pErr) return;
 
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          name: name.trim() || null,
+          title: title.trim() || null,
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // 后端错误：比如邮箱已注册、规则不符合等
         setSnack({ open: true, type: "error", msg: data.message || "注册失败" });
         return;
       }
 
       setSnack({ open: true, type: "success", msg: data.message || "注册成功" });
 
-      // 注册成功后跳转登录
       setTimeout(() => router.push("/auth/login"), 800);
     } finally {
       setLoading(false);
@@ -84,8 +111,12 @@ export default function SignupPage() {
       onSubmit={handleSubmit}
       sx={{ width: 420, p: 3, border: "1px solid #eee", borderRadius: 2 }}
     >
-      <Typography variant="h5" sx={{ mb: 2 }}>
+      <Typography variant="h5" sx={{ mb: 1 }}>
         Sign Up
+      </Typography>
+
+      <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+        Email 将作为登录账号，注册后不可修改。
       </Typography>
 
       <TextField
@@ -96,6 +127,28 @@ export default function SignupPage() {
         onBlur={() => setEmailErr(validateEmail(email))}
         error={!!emailErr}
         helperText={emailErr || " "}
+        margin="normal"
+      />
+
+      <TextField
+        fullWidth
+        label="姓名（可选）"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onBlur={() => setNameErr(validateName(name))}
+        error={!!nameErr}
+        helperText={nameErr || " "}
+        margin="normal"
+      />
+
+      <TextField
+        fullWidth
+        label="Title（可选）"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onBlur={() => setTitleErr(validateTitle(title))}
+        error={!!titleErr}
+        helperText={titleErr || " "}
         margin="normal"
       />
 

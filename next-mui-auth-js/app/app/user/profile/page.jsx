@@ -18,13 +18,8 @@ import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import PhotoLibraryOutlinedIcon from "@mui/icons-material/PhotoLibraryOutlined";
+import { useUserStore } from "@/lib/userStore";
 
-/**
- * 本地静态资源接口位：
- * 你后面把图片放到 /public/images/profile/ 下即可
- * - /public/images/profile/cover.jpg
- * - /public/images/profile/avatar.jpg
- */
 const ASSETS = {
   coverSrc: "/images/profile/cover.jpg",
   avatarSrc: "/images/profile/avatar.jpg",
@@ -64,17 +59,13 @@ function InfoRow({ label, value }) {
 export default function UserProfilePage() {
   const [tab, setTab] = React.useState(0);
 
-  // 当前登录用户：先用假数据占位（后续接 auth/session/store）
-  const me = {
-    name: "Jaydon Frankie",
-    title: "CTO",
-    email: "jaydon@example.com",
-    location: "Shanghai, CN",
-    company: "Acme Inc.",
-    bio: "Building product systems and leading engineering teams.",
-  };
+  const me = useUserStore((s) => s.me);
+  const fetchMe = useUserStore((s) => s.fetchMe);
 
-  // 图片不存在时 fallback
+  React.useEffect(() => {
+    if (!me) fetchMe();
+  }, [me, fetchMe]);
+
   const [coverOk, setCoverOk] = React.useState(true);
   const [avatarOk, setAvatarOk] = React.useState(true);
 
@@ -97,9 +88,7 @@ export default function UserProfilePage() {
       </Typography>
 
       <Card sx={{ overflow: "hidden", borderRadius: 3 }}>
-        {/* Cover */}
         <Box sx={{ height: 270, position: "relative", ...coverStyle }}>
-          {/* 用隐藏 img 探测 cover 是否存在，不存在就切换渐变 */}
           <Box
             component="img"
             src={ASSETS.coverSrc}
@@ -108,7 +97,6 @@ export default function UserProfilePage() {
             sx={{ display: "none" }}
           />
 
-          {/* 头像 + 名称（叠加在 cover 底部） */}
           <Box
             sx={{
               position: "absolute",
@@ -122,7 +110,7 @@ export default function UserProfilePage() {
           >
             <Avatar
               src={avatarOk ? ASSETS.avatarSrc : undefined}
-              alt={me.name}
+              alt={me?.name || "User"}
               imgProps={{ onError: () => setAvatarOk(false) }}
               sx={{
                 width: 120,
@@ -132,28 +120,21 @@ export default function UserProfilePage() {
                 boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
               }}
             >
-              {me.name?.[0] || "U"}
+              {me?.name?.[0] || "U"}
             </Avatar>
 
             <Box sx={{ pb: 1 }}>
               <Typography variant="h5" sx={{ color: "common.white", fontWeight: 700 }}>
-                {me.name}
+                {me?.name || "—"}
               </Typography>
               <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.75)" }}>
-                {me.title}
+                {me?.title || me?.role || ""}
               </Typography>
             </Box>
           </Box>
         </Box>
 
-        {/* Tabs bar */}
-        <Box
-          sx={{
-            pt: 6, // 给上面头像腾空间
-            px: { xs: 1, md: 2 },
-            bgcolor: "background.paper",
-          }}
-        >
+        <Box sx={{ pt: 6, px: { xs: 1, md: 2 }, bgcolor: "background.paper" }}>
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}
@@ -182,16 +163,17 @@ export default function UserProfilePage() {
                       About
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {me.bio}
+                      {me?.bio || "—"}
                     </Typography>
 
                     <Divider sx={{ my: 2 }} />
 
                     <Stack spacing={1}>
-                      <InfoRow label="Email" value={me.email} />
-                      <InfoRow label="Location" value={me.location} />
-                      <InfoRow label="Company" value={me.company} />
-                      <InfoRow label="Title" value={me.title} />
+                      <InfoRow label="Email" value={me?.email} />
+                      <InfoRow label="Location" value={me?.location} />
+                      <InfoRow label="Company" value={me?.company} />
+                      <InfoRow label="Title" value={me?.title} />
+                      <InfoRow label="Role" value={me?.role} />
                     </Stack>
                   </CardContent>
                 </Card>
@@ -204,7 +186,7 @@ export default function UserProfilePage() {
                       Activity
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      这里后续接当前登录用户的活动数据（例如登录记录、操作日志、统计等）。
+                      TODO
                     </Typography>
                   </CardContent>
                 </Card>
@@ -217,7 +199,7 @@ export default function UserProfilePage() {
                       Settings
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      这里可以放账号设置入口（修改资料、修改密码、绑定等）。
+                      TODO
                     </Typography>
                   </CardContent>
                 </Card>
