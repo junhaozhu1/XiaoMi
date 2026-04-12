@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Papa from "papaparse";
 import {
   Box,
   Card,
@@ -30,7 +29,6 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const drawerContentMaxWidth = 1100;
-
 const LEVEL_OPTIONS = ["1", "2", "3", "4"];
 
 function formatNumber(n) {
@@ -40,8 +38,6 @@ function formatNumber(n) {
 }
 
 function efficiencyColor(value) {
-  // value = annualRevenue / employees
-  // 你可按需求调阈值
   if (value >= 600) return { bg: "success.light", fg: "success.contrastText" };
   if (value >= 300) return { bg: "warning.light", fg: "warning.contrastText" };
   return { bg: "error.light", fg: "error.contrastText" };
@@ -141,53 +137,83 @@ export default function CompaniesPage() {
   const [page, setPage] = React.useState(0); // 从 0 开始
   const rowsPerPage = 10;
 
+  // React.useEffect(() => {
+  //   let ignore = false;
+
+  //   async function load() {
+  //     try {
+  //       setLoading(true);
+  //       setError("");
+
+  //       // 改为读 Next API（Next API 会去请求 Nest: http://localhost:3001/companies）
+  //       const res = await fetch("/api/companies", { cache: "no-store" });
+  //       if (!res.ok) throw new Error(`Failed to fetch /api/companies: ${res.status}`);
+
+  //       const payload = await res.json();
+  //       // 兼容：Nest 可能直接返回数组，也可能返回 {data: []}
+  //       const list = Array.isArray(payload) ? payload : payload?.data ?? [];
+
+  //       const data = list.map((c) => ({
+  //         company_code: String(c.company_code ?? "").trim(),
+  //         company_name: String(c.company_name ?? "").trim(),
+  //         level: String(c.level ?? "").trim(),
+  //         country: String(c.country ?? "").trim(),
+  //         city: String(c.city ?? "").trim(),
+  //         founded_year: c.founded_year ?? "",
+  //         annual_revenue: String(c.annual_revenue ?? "").trim(),
+  //         employees: String(c.employees ?? "").trim(),
+  //       }));
+
+  //       if (!ignore) setRows(data);
+  //     } catch (e) {
+  //       if (!ignore) setError(e?.message || "Load failed");
+  //     } finally {
+  //       if (!ignore) setLoading(false);
+  //     }
+  //   }
+
+  //   load();
+  //   return () => {
+  //     ignore = true;
+  //   };
+  // }, []);
+
   React.useEffect(() => {
-    let ignore = false;
+  let ignore = false;
 
-    async function load() {
-      try {
-        setLoading(true);
-        setError("");
+  async function load() {
+    try {
+      setLoading(true);
+      setError("");
 
-        const res = await fetch("/companies_data.csv", { cache: "no-store" });
-        if (!res.ok) throw new Error(`Failed to fetch csv: ${res.status}`);
+      const res = await fetch(`/api/companies?page=1&pageSize=5000`, {
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error(`Failed to fetch /api/companies: ${res.status}`);
 
-        const text = await res.text();
+      const payload = await res.json();
 
-        const parsed = Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-        });
+      // Nest 分页结构：{ page, pageSize, total, items: [...] }
+      const list = Array.isArray(payload) ? payload : payload?.items ?? [];
 
-        if (parsed.errors?.length) {
-          console.warn("CSV parse errors:", parsed.errors);
-        }
+      const data = list.map((c) => ({
+        company_code: String(c.company_code ?? "").trim(),
+        company_name: String(c.company_name ?? "").trim(),
+        level: String(c.level ?? "").trim(),
+        country: String(c.country ?? "").trim(),
+        city: String(c.city ?? "").trim(),
+        founded_year: c.founded_year ?? "",
+        annual_revenue: String(c.annual_revenue ?? "").trim(),
+        employees: String(c.employees ?? "").trim(),
+      }));
 
-        const data = (parsed.data || []).map((r) => ({
-          ...r,
-          level: String(r.level ?? "").trim(),
-          annual_revenue: String(r.annual_revenue ?? "").trim(),
-          employees: String(r.employees ?? "").trim(),
-        }));
-        // const data = (parsed.data || []).map((r, i) => {
-        //   const level = String(r.level ?? "").trim();
-        //   console.log("row", i, "level(raw)=", r.level, "level(trim)=", level);
-
-        //   return {
-        //     ...r,
-        //     level,
-        //     annual_revenue: String(r.annual_revenue ?? "").trim(),
-        //     employees: String(r.employees ?? "").trim(),
-        //   };
-        // });
-
-        if (!ignore) setRows(data);
-      } catch (e) {
-        if (!ignore) setError(e.message || "Load failed");
-      } finally {
-        if (!ignore) setLoading(false);
-      }
+      if (!ignore) setRows(data);
+    } catch (e) {
+      if (!ignore) setError(e?.message || "Load failed");
+    } finally {
+      if (!ignore) setLoading(false);
     }
+  }
 
     load();
     return () => {
@@ -205,17 +231,17 @@ export default function CompaniesPage() {
   }, [rows, levels, q]);
 
   React.useEffect(() => {
-  setPage(0);
+    setPage(0);
   }, [q, levels, rows.length]);
+
   const paged = React.useMemo(() => {
     const start = page * rowsPerPage;
     return filtered.slice(start, start + rowsPerPage);
-  }, [filtered, page]);
+  }, [filtered, page, rowsPerPage]);
 
   return (
     <Box sx={{ maxWidth: drawerContentMaxWidth, mx: "auto" }}>
       <Stack spacing={2}>
-        {/* <Typography variant="h4">Companies</Typography> */}
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Companies
         </Typography>
@@ -294,13 +320,14 @@ export default function CompaniesPage() {
               </TableBody>
             </Table>
           </TableContainer>
+
           <TablePagination
             component="div"
-            count={filtered.length}          // 过滤后的总数
+            count={filtered.length}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[10]}        // 固定 10 条/页（按你的要求）
+            rowsPerPageOptions={[10]}
           />
         </Card>
       </Stack>

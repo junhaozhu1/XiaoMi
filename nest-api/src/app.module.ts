@@ -5,8 +5,14 @@ import { DbModule } from './db/db.module';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 
+import { CompaniesModule } from './companies/companies.module';
+
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DbModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DbModule,
+    CompaniesModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService],
 })

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as mysql from 'mysql2/promise';
+import type { QueryResult } from 'mysql2/promise';
 
 @Injectable()
 export class DbService {
@@ -20,7 +21,7 @@ export class DbService {
     return this.pool;
   }
 
-  query<T extends any[] = any[]>(sql: string, params?: any[]) {
-    return this.getPool().query(sql, params);
+  query<T extends QueryResult = QueryResult>(sql: string, params?: any[]) {
+    return this.getPool().query<T>(sql, params);
   }
 }

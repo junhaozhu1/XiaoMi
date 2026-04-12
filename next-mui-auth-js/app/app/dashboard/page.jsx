@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Papa from "papaparse";
+// import Papa from "papaparse";
 import * as d3 from "d3";
 
 import {
@@ -466,31 +466,54 @@ export default function DashboardPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("/companies_data.csv", { cache: "no-store" });
-        if (!res.ok) throw new Error(`Failed to fetch csv: ${res.status}`);
+        // const res = await fetch("/companies_data.csv", { cache: "no-store" });
+        // if (!res.ok) throw new Error(`Failed to fetch csv: ${res.status}`);
 
-        const text = await res.text();
-        const parsed = Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-        });
+        // const text = await res.text();
+        // const parsed = Papa.parse(text, {
+        //   header: true,
+        //   skipEmptyLines: true,
+        // });
 
-        if (parsed.errors?.length) {
-          console.warn("CSV parse errors:", parsed.errors);
-        }
+        // if (parsed.errors?.length) {
+        //   console.warn("CSV parse errors:", parsed.errors);
+        // }
 
-        const data = (parsed.data || []).map((r) => ({
-          company_code: String(r.company_code ?? "").trim(),
-          company_name: String(r.company_name ?? "").trim(),
-          level: Number(String(r.level ?? "").trim()),
-          country: String(r.country ?? "").trim(),
-          city: String(r.city ?? "").trim(),
-          founded_year: Number(String(r.founded_year ?? "").trim()),
-          annual_revenue: Number(String(r.annual_revenue ?? "").trim()),
-          employees: Number(String(r.employees ?? "").trim().replace(/[^\d]/g, "")),
+        // const data = (parsed.data || []).map((r) => ({
+        //   company_code: String(r.company_code ?? "").trim(),
+        //   company_name: String(r.company_name ?? "").trim(),
+        //   level: Number(String(r.level ?? "").trim()),
+        //   country: String(r.country ?? "").trim(),
+        //   city: String(r.city ?? "").trim(),
+        //   founded_year: Number(String(r.founded_year ?? "").trim()),
+        //   annual_revenue: Number(String(r.annual_revenue ?? "").trim()),
+        //   employees: Number(String(r.employees ?? "").trim().replace(/[^\d]/g, "")),
+        // }));
+
+        // if (!ignore) setCompanies(data);
+
+        const res = await fetch("/api/companies?page=1&pageSize=5000", { cache: "no-store" });
+        if (!res.ok) throw new Error(`Failed to fetch /api/companies: ${res.status}`);
+
+        // const payload = await res.json();
+        // const list = Array.isArray(payload) ? payload : payload?.data ?? [];
+
+        const payload = await res.json();
+        const list = Array.isArray(payload) ? payload : payload?.items ?? payload?.data ?? [];
+
+        const data = list.map((c) => ({
+          company_code: String(c.company_code ?? "").trim(),
+          company_name: String(c.company_name ?? "").trim(),
+          level: Number(c.level),
+          country: String(c.country ?? "").trim(),
+          city: String(c.city ?? "").trim(),
+          founded_year: Number(c.founded_year),
+          annual_revenue: Number(c.annual_revenue),
+          employees: Number(String(c.employees ?? "").trim().replace(/[^\d]/g, "")),
         }));
 
         if (!ignore) setCompanies(data);
+
       } catch (e) {
         if (!ignore) setError(e?.message || "Load failed");
       } finally {

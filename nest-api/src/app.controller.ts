@@ -1,12 +1,19 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { DbModule } from './db/db.module';
+import { CompaniesModule } from './companies/companies.module';
 
-@Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-}
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DbModule,
+    CompaniesModule,
+  ],
+  controllers: [AuthController],
+  providers: [AuthService],
+})
+export class AppModule {}
