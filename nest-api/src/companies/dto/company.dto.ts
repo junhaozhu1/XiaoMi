@@ -1,73 +1,133 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateCompanyDto {
-  @IsString() @IsNotEmpty()
+  @ApiProperty({ example: 'C0001' })
+  @IsString()
+  @IsNotEmpty()
   company_code!: string;
 
-  @IsString() @IsNotEmpty()
+  @ApiProperty({ example: 'Test Company' })
+  @IsString()
+  @IsNotEmpty()
   company_name!: string;
 
-  @IsInt() @Min(1) @Max(4)
+  @ApiProperty({ example: 2, minimum: 1, maximum: 4 })
+  @IsInt()
+  @Min(1)
+  @Max(4)
   level!: number;
 
-  @IsString() @IsNotEmpty()
+  @ApiProperty({ example: 'China' })
+  @IsString()
+  @IsNotEmpty()
   country!: string;
 
-  @IsString() @IsNotEmpty()
+  @ApiProperty({ example: 'Beijing' })
+  @IsString()
+  @IsNotEmpty()
   city!: string;
 
-  @IsInt() @Min(1800) @Max(2100)
+  @ApiProperty({ example: 2000, minimum: 1800, maximum: 2100 })
+  @IsInt()
+  @Min(1800)
+  @Max(2100)
   founded_year!: number;
 
-  @IsInt() @Min(0)
+  @ApiProperty({ example: 1000000, minimum: 0 })
+  @IsInt()
+  @Min(0)
   annual_revenue!: number;
 
-  @IsInt() @Min(0)
+  @ApiProperty({ example: 100, minimum: 0 })
+  @IsInt()
+  @Min(0)
   employees!: number;
 }
 
 export class UpdateCompanyDto {
-  @IsOptional() @IsString() @IsNotEmpty()
+  @ApiPropertyOptional({ example: 'C0002' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   company_code?: string;
 
-  @IsOptional() @IsString() @IsNotEmpty()
+  @ApiPropertyOptional({ example: 'New Name' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   company_name?: string;
 
-  @IsOptional() @IsInt() @Min(1) @Max(4)
+  @ApiPropertyOptional({ example: 3, minimum: 1, maximum: 4 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(4)
   level?: number;
 
-  @IsOptional() @IsString() @IsNotEmpty()
+  @ApiPropertyOptional({ example: 'China' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   country?: string;
 
-  @IsOptional() @IsString() @IsNotEmpty()
+  @ApiPropertyOptional({ example: 'Shanghai' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   city?: string;
 
-  @IsOptional() @IsInt() @Min(1800) @Max(2100)
+  @ApiPropertyOptional({ example: 2010, minimum: 1800, maximum: 2100 })
+  @IsOptional()
+  @IsInt()
+  @Min(1800)
+  @Max(2100)
   founded_year?: number;
 
-  @IsOptional() @IsInt() @Min(0)
+  @ApiPropertyOptional({ example: 999999, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
   annual_revenue?: number;
 
-  @IsOptional() @IsInt() @Min(0)
+  @ApiPropertyOptional({ example: 200, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
   employees?: number;
 }
 
 export class ListCompaniesQueryDto {
-  @IsOptional() @IsInt() @Min(1)
-  page?: number; // 1-based
+  @ApiPropertyOptional({ example: 1, minimum: 1, description: '1-based' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  page?: number;
 
-  @IsOptional() @IsInt() @Min(1) @Max(100)
+  @ApiPropertyOptional({ example: 10, minimum: 1, maximum: 5000 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(5000) // 对齐 CompaniesService 的 MAX_PAGE_SIZE=5000
   pageSize?: number;
 
-  @IsOptional() @IsString()
-  q?: string; // name/code fuzzy
+  @ApiPropertyOptional({ example: 'openai', description: 'name/code fuzzy search' })
+  @IsOptional()
+  @IsString()
+  q?: string;
 
-  @IsOptional() @IsIn(['1','2','3','4'])
+  @ApiPropertyOptional({ example: '2', enum: ['1', '2', '3', '4'] })
+  @IsOptional()
+  @IsIn(['1', '2', '3', '4'])
   level?: string;
 
-  @IsOptional() @IsString()
+  @ApiPropertyOptional({ example: 'China' })
+  @IsOptional()
+  @IsString()
   country?: string;
 
-  @IsOptional() @IsString()
+  @ApiPropertyOptional({ example: 'Beijing' })
+  @IsOptional()
+  @IsString()
   city?: string;
 }
