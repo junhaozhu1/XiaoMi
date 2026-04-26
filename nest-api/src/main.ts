@@ -34,6 +34,7 @@ async function bootstrap() {
     .setDescription('Auth + Companies APIs')
     .setVersion('1.0.0')
     .addCookieAuth(cookieName, { type: 'apiKey', in: 'cookie', name: cookieName })
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

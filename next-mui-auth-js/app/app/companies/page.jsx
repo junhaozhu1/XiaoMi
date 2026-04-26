@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { authFetch } from "@/lib/auth-fetch";
 import {
   Box,
   Card,
@@ -137,84 +138,44 @@ export default function CompaniesPage() {
   const [page, setPage] = React.useState(0); // 从 0 开始
   const rowsPerPage = 10;
 
-  // React.useEffect(() => {
-  //   let ignore = false;
-
-  //   async function load() {
-  //     try {
-  //       setLoading(true);
-  //       setError("");
-
-  //       // 改为读 Next API（Next API 会去请求 Nest: http://localhost:3001/companies）
-  //       const res = await fetch("/api/companies", { cache: "no-store" });
-  //       if (!res.ok) throw new Error(`Failed to fetch /api/companies: ${res.status}`);
-
-  //       const payload = await res.json();
-  //       // 兼容：Nest 可能直接返回数组，也可能返回 {data: []}
-  //       const list = Array.isArray(payload) ? payload : payload?.data ?? [];
-
-  //       const data = list.map((c) => ({
-  //         company_code: String(c.company_code ?? "").trim(),
-  //         company_name: String(c.company_name ?? "").trim(),
-  //         level: String(c.level ?? "").trim(),
-  //         country: String(c.country ?? "").trim(),
-  //         city: String(c.city ?? "").trim(),
-  //         founded_year: c.founded_year ?? "",
-  //         annual_revenue: String(c.annual_revenue ?? "").trim(),
-  //         employees: String(c.employees ?? "").trim(),
-  //       }));
-
-  //       if (!ignore) setRows(data);
-  //     } catch (e) {
-  //       if (!ignore) setError(e?.message || "Load failed");
-  //     } finally {
-  //       if (!ignore) setLoading(false);
-  //     }
-  //   }
-
-  //   load();
-  //   return () => {
-  //     ignore = true;
-  //   };
-  // }, []);
-
   React.useEffect(() => {
-  let ignore = false;
-
-  async function load() {
-    try {
-      setLoading(true);
-      setError("");
-
-      const res = await fetch(`/api/companies?page=1&pageSize=5000`, {
-        cache: "no-store",
-      });
-      if (!res.ok) throw new Error(`Failed to fetch /api/companies: ${res.status}`);
-
-      const payload = await res.json();
-
-      // Nest 分页结构：{ page, pageSize, total, items: [...] }
-      const list = Array.isArray(payload) ? payload : payload?.items ?? [];
-
-      const data = list.map((c) => ({
-        company_code: String(c.company_code ?? "").trim(),
-        company_name: String(c.company_name ?? "").trim(),
-        level: String(c.level ?? "").trim(),
-        country: String(c.country ?? "").trim(),
-        city: String(c.city ?? "").trim(),
-        founded_year: c.founded_year ?? "",
-        annual_revenue: String(c.annual_revenue ?? "").trim(),
-        employees: String(c.employees ?? "").trim(),
-      }));
-
-      if (!ignore) setRows(data);
-    } catch (e) {
-      if (!ignore) setError(e?.message || "Load failed");
-    } finally {
-      if (!ignore) setLoading(false);
+    let ignore = false;
+    async function load() {
+      try {
+        setLoading(true);
+        setError("");
+        // 使用 authFetch 替代 fetch
+        const res = await authFetch(`/api/companies?page=1&pageSize=5000`, {
+          cache: "no-store",
+        });
+        
+        if (!res.ok) {
+          // 如果是 401，可能需要重新登录
+          if (res.status === 401) {
+            throw new Error("请先登录");
+          }
+          throw new Error(`Failed to fetch /api/companies: ${res.status}`);
+        }
+        const payload = await res.json();
+        // Nest 分页结构：{ page, pageSize, total, items: [...] }
+        const list = Array.isArray(payload) ? payload : payload?.items ?? [];
+        const data = list.map((c) => ({
+          company_code: String(c.company_code ?? "").trim(),
+          company_name: String(c.company_name ?? "").trim(),
+          level: String(c.level ?? "").trim(),
+          country: String(c.country ?? "").trim(),
+          city: String(c.city ?? "").trim(),
+          founded_year: c.founded_year ?? "",
+          annual_revenue: String(c.annual_revenue ?? "").trim(),
+          employees: String(c.employees ?? "").trim(),
+        }));
+        if (!ignore) setRows(data);
+      } catch (e) {
+        if (!ignore) setError(e?.message || "Load failed");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
     }
-  }
-
     load();
     return () => {
       ignore = true;

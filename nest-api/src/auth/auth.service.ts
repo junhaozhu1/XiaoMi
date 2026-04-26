@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { DbService } from '../db/db.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly db: DbService) {}
+  constructor(
+    private readonly db: DbService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async validateLogin(email: string, password: string) {
     const [rows]: any = await this.db.query(
-      'SELECT id, email, password_hash FROM users WHERE email = ?',
+      'SELECT id, email, password_hash, role FROM users WHERE email = ?',
       [email],
     );
 
@@ -18,7 +22,28 @@ export class AuthService {
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) return { ok: false, status: 401, message: '密码错误' };
 
-    return { ok: true, user: { id: user.id, email: user.email } };
+    return { 
+      ok: true, 
+      user: { 
+        id: user.id, 
+        email: user.email,
+        role: user.role 
+      } 
+    };
+  }
+
+  generateToken(user: { id: number; email: string; role: string }) {
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    return this.jwtService.sign(payload);
+  }
+
+  // 新增：验证并解析JWT token
+  verifyToken(token: string): any {
+    try {
+      return this.jwtService.verify(token);
+    } catch (error) {
+      return null;
+    }
   }
 
   async signup(body: any) {

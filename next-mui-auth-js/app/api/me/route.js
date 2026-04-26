@@ -1,5 +1,3 @@
-// 
-
 import { proxyToBackend } from "@/lib/proxy";
 
 export async function GET(req) {

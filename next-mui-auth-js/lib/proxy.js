@@ -1,53 +1,61 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4100";
-
 export async function proxyToBackend(path, req) {
-  // 拼上 query string
+  const base = process.env.NEST_API_BASE_URL || "http://localhost:4100";
   const url = new URL(req.url);
-  const upstreamUrl = `${API_BASE}${path}${url.search}`;
-
-  // 读取 body（只在需要时）
-  let body;
-  if (req.method !== "GET" && req.method !== "HEAD") {
-    const contentType = req.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      body = JSON.stringify(await req.json());
-    } else {
-      body = await req.text();
-    }
+  
+  // 构建上游 URL
+  const upstreamUrl = `${base}${path}${url.search}`;
+  
+  // 获取请求头
+  const headers = {};
+  
+  // 转发 Authorization header
+  const authHeader = req.headers.get('authorization');
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
+  }
+  
+  // 转发 Cookie
+  const cookieHeader = req.headers.get('cookie');
+  if (cookieHeader) {
+    headers['Cookie'] = cookieHeader;
+  }
+  
+  // 转发 Content-Type
+  const contentType = req.headers.get('content-type');
+  if (contentType) {
+    headers['Content-Type'] = contentType;
   }
 
-  const upstream = await fetch(upstreamUrl, {
+  // 准备请求配置
+  const config = {
     method: req.method,
+    headers,
+  };
+
+  // 如果有 body，转发它
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    config.body = await req.text();
+  }
+
+  // 发送请求到后端
+  const response = await fetch(upstreamUrl, config);
+  
+  // 获取响应数据
+  const data = await response.text();
+  
+  // 创建响应
+  const res = new Response(data, {
+    status: response.status,
+    statusText: response.statusText,
     headers: {
-      // 透传 cookie 给 Nest
-      cookie: req.headers.get("cookie") || "",
-      // 透传 content-type（不要强行固定 json）
-      ...(req.headers.get("content-type")
-        ? { "Content-Type": req.headers.get("content-type") }
-        : {}),
+      'Content-Type': response.headers.get('content-type') || 'application/json',
     },
-    body,
-    // 不需要 credentials：这是 server-to-server
   });
 
-  const buf = await upstream.arrayBuffer();
-
-  const res = new Response(buf, {
-    status: upstream.status,
-    headers: {
-      "Content-Type": upstream.headers.get("content-type") || "application/json",
-    },
-  });
-
-  // 透传 Set-Cookie（兼容多条）
-  // 在 Next/undici 环境中，headers.getSetCookie() 通常可用；不行再 fallback
-  const h = upstream.headers;
-  if (typeof h.getSetCookie === "function") {
-    const cookies = h.getSetCookie();
-    for (const c of cookies) res.headers.append("set-cookie", c);
-  } else {
-    const setCookie = h.get("set-cookie");
-    if (setCookie) res.headers.set("set-cookie", setCookie);
+  // 转发 Set-Cookie header
+  const setCookie = response.headers.get('set-cookie');
+  if (setCookie) {
+    res.headers.set('set-cookie', setCookie);
   }
 
   return res;

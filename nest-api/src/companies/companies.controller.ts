@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -10,8 +11,11 @@ import {
 } from '@nestjs/swagger';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto, ListCompaniesQueryDto, UpdateCompanyDto } from './dto/company.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('companies')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller()
 export class CompaniesController {
   constructor(private readonly companies: CompaniesService) {}
