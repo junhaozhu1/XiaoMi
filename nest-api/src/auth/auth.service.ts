@@ -37,7 +37,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  // 新增：验证并解析JWT token
+  // 验证并解析JWT token
   verifyToken(token: string): any {
     try {
       return this.jwtService.verify(token);

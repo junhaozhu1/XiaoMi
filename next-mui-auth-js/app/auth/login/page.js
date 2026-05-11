@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/auth-fetch"; // 添加这行
+import { login } from "@/lib/auth-fetch";
 
 function validateEmail(email) {
   if (!email) return "邮箱不能为空";

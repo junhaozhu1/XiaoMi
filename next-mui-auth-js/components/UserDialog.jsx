@@ -29,7 +29,7 @@ export default function UserDialog({
   onClose,
   onSubmit,
   roleOptions = [],
-  disableRole = false, // 新增：manager true
+  disableRole = false, 
 }) {
   const isEdit = mode === "edit";
 

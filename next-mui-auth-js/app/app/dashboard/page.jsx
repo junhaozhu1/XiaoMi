@@ -2,7 +2,6 @@
 
 import React from "react";
 import { authFetch } from "@/lib/auth-fetch";
-// import Papa from "papaparse";
 import * as d3 from "d3";
 
 import {
@@ -139,12 +138,12 @@ function buildBubbleHierarchy(companies, dimension) {
 }
 
 /**
- * Bubble interaction rules (as requested):
- * - No highlight/arming.
- * - Click goes to NEXT level directly.
- * - Cannot skip levels: only nodes that are direct children of current focus are clickable.
- * - Leaf nodes (companies) do not zoom.
- * - Background click zooms out to root.
+ * 气泡交互规则（按要求）：
+ * - 不需要高亮或“预选”状态。
+ * - 点击后直接进入下一层级。
+ * - 不能跳级：只有当前聚焦节点的直接子节点可点击。
+ * - 叶子节点（公司）不执行缩放操作。
+ * - 点击背景区域会缩放回根节点。
  */
 function ZoomableCirclePacking({ data, height = 520 }) {
   const theme = useTheme();
@@ -190,10 +189,10 @@ function ZoomableCirclePacking({ data, height = 520 }) {
       .attr("height", h)
       .style("display", "block");
 
-    // ---- IMPORTANT: background catcher rect (always clickable) ----
-    // Put it BEFORE nodes group so it is behind everything visually,
-    // but it will still receive clicks where no element stops propagation.
-    // We also force it to be clickable.
+    // ---- 重要：背景捕获矩形（始终可点击）----
+    // 把它放在节点分组（nodes group）之前，这样在视觉上位于所有内容的后面，
+    // 但仍能接收到那些没有被其他元素阻止事件传播的点击。
+    // 我们同时强制让它保持可点击状态。
     const bg = svg
       .append("rect")
       .attr("x", -diameter / 2)
@@ -234,18 +233,6 @@ function ZoomableCirclePacking({ data, height = 520 }) {
       .attr("stroke", (d) => (d.children ? theme.palette.divider : "transparent"))
       .attr("stroke-width", 1);
 
-    // const groupLabel = g
-    //   .append("g")
-    //   .style("font", "12px system-ui, -apple-system, Segoe UI, Roboto, Arial")
-    //   .attr("text-anchor", "middle")
-    //   .selectAll("text")
-    //   .data(root.descendants().filter((d) => d.children))
-    //   .join("text")
-    //   .style("fill", theme.palette.text.primary)
-    //   .style("fill-opacity", 0)
-    //   .style("display", "none")
-    //   .style("pointer-events", "none")
-    //   .text((d) => d.data?.name ?? "");
     const groupLabel = g
       .append("g")
       .style("font-family", "system-ui, -apple-system, Segoe UI, Roboto, Arial")

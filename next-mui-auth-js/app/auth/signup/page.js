@@ -31,7 +31,7 @@ function validatePassword(password) {
   return "";
 }
 
-// 可选字段：只做长度限制
+// 只做长度限制
 function validateName(name) {
   if (!name) return "";
   if (name.trim().length > 100) return "姓名过长（最多100字符）";

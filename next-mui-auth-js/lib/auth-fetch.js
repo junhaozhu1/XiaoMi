@@ -47,7 +47,7 @@ export async function login(email, password) {
 // 登出函数
 export function logout() {
   localStorage.removeItem('access_token');
-  // 可选：调用后端登出接口清除 cookie
+  // 调用后端登出接口清除 cookie
   fetch('/api/auth/logout', {
     method: 'POST',
     credentials: 'include',

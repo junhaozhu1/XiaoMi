@@ -46,8 +46,6 @@ export async function POST(req) {
 
   const pool = getPool();
 
-  // 默认密码：先给一个临时密码（也可以改成邀请制/发送邮件）
-  // 这里为了闭环：后端直接拒绝“未提供 password”，避免创建出无法登录的账号
   const password = body.password;
   if (!password) {
     return Response.json({ message: "需要提供初始密码 password" }, { status: 400 });
